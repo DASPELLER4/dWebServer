@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <string.h>
 
 #include "consts.h"
 #include "body.h"
@@ -108,20 +109,56 @@ version:
 			if(*predata == '\n'){
 				*predata = 0;
 				predata++;
-				goto headers;
+				goto headerslabel;
 			} else if(*predata == '\r'){
 				*predata = 0;
 				continue;
-			}else if(*predata == '\0' || *predata == ' '){
+			} else if(*predata == '\0' || *predata == ' '){
 				fprintf(stderr, "Encountered malformed version\n");
 				goto forceclose;
 			}
 			versionLength++;
 		}
-headers:
+headerslabel:
+		if(strcmp(type,"POST") && strcmp(type,"GET")){
+			fprintf(stderr, "Recieved neither a GET nor POST request, unsupported!");
+			goto forceclose;
+		}
+		char *headers = predata;
+		char *currentHeader = predata;
+		int headerLength = 0;
+		header_t *parsedHeaders = newHeaders();
 #ifdef DEBUG
 		printf("Type[%d]: %s\nPath[%d]: %s\nVersion[%d]: %s\n", typeLength, type, pathLength, path, versionLength, version);
 #endif
+		for(;;predata++){
+			if(*predata == '\n'){
+				*predata = 0;
+				appendHeader(parsedHeaders, parseHeader(currentHeader));
+				printf("%lx:\n\t%s\n", (long) currentHeader, currentHeader);
+				currentHeader = predata+1;
+			} else if(*predata == '\r'){
+				*predata = 0;
+				if(predata == currentHeader){
+					predata += 2; // this is a hack and should be done properly
+					goto body;
+				}
+			} else if(*predata == '\0'){
+				fprintf(stderr, "Encountered malformed header\n");
+				goto forceclose;
+			}
+			headerLength++;
+		}
+body:
+#ifdef DEBUG
+		printf("Parsed headers:\n");
+		for(int i = 0; i < parsedHeaders->count; i++){
+			printf("\t%s : %s\n", parsedHeaders->headers[i].key, parsedHeaders->headers[i].value);
+		}
+		printf("Started parsing body\n");
+#endif
+		free(parsedHeaders->headers);
+		free(parsedHeaders);
 forceclose:
 		close(newRequest);
 		free(predatastart);
