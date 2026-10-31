@@ -61,4 +61,12 @@ void *appendHeader(header_t *headers, keyvalue_t header){
 	headers->headers[headers->count++] = header;
 }
 
+char *searchHeader(header_t *headers, char *searchKey){
+	int searchHash = keyHash_(searchKey);
+	for(int i = 0; i < headers->count; i++)
+		if(searchHash == headers->headers[i].keyHash)
+			return headers->headers[i].value;
+	return NULL;
+}
+
 #endif

@@ -10,7 +10,7 @@
 #endif
 
 #ifndef PREDATASIZE
-	#define PREDATASIZE 1234567 // :D
+	#define PREDATASIZE 1000 // :D
 #endif
 
 #endif

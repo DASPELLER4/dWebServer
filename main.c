@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <stdint.h>
 #include <netinet/in.h>
-#include <time.h>
+#include <sys/time.h>
 #include <string.h>
 
 #include "consts.h"
@@ -61,6 +61,10 @@ int main(int argc, char **argv){
                         continue;
                 }
 		close(serverFd); // we're inside a fork
+#ifdef DEBUG
+		struct timeval start, end;
+		gettimeofday(&start, NULL);
+#endif
 		char *predata = calloc(PREDATASIZE, sizeof(char)); // basically data to find the HTTP header with
 		char *predatastart = predata;
 		long datafillsize = read(newRequest, predata, PREDATASIZE-1);
@@ -137,7 +141,8 @@ headerslabel:
 #ifdef DEBUG
 				printf("%lx:\n\t%s\n", (long) currentHeader, currentHeader);
 #endif
-				appendHeader(parsedHeaders, parseHeader(currentHeader));
+				appendHeader(parsedHeaders, parseHeader(currentHeader)); // might make this function inline in this loop since looking backwards
+											 // in a string already iterated through seems silly
 				currentHeader = predata+1;
 			} else if(*predata == '\r'){
 				*predata = 0;
@@ -159,25 +164,39 @@ body:
 		}
 		printf("Started parsing body\n");
 #endif
-		char *contentlengthc = NULL;
-		int searchHash = keyHash_("Content-Length");
-		for(int i = 0; i < parsedHeaders->count; i++){
-			if(parsedHeaders->headers[i].keyHash == searchHash){
-				contentlengthc = parsedHeaders->headers[i].value;
-				break;
+		char *contentlengthc = searchHeader(parsedHeaders, "Content-Length");
+		long contentlength = -1;
+		char *bodystart = NULL;
+		if(contentlengthc){
+			contentlength = atol(contentlengthc);
+			if(contentlength > PREDATASIZE-(predata-predatastart)){
+				char *temp = malloc(contentlength);
+				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
+				read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1, contentlength-(PREDATASIZE-(predata-predatastart)-1));
+				predata = temp;
+				// cannot free predata/predatastart here because many strings depend on them
 			}
-		}
-		int contentlength = atoi(contentlengthc);
 #ifdef DEBUG
-		printf("Content-Length is %d\n", contentlength);
+			printf("Content-Length is %ld\n", contentlength);
+#endif
+		}
+		char *body = predata;
+		long bodyLength = contentlength;
+#if DEBUG
+		printf("Body data:\n%s\n",body);
+		printf("Expected size: %ld, strlen size: %ld\n", bodyLength, strlen(body));
 #endif
 		free(parsedHeaders->headers);
 		free(parsedHeaders);
+		if(bodystart)
+			free(bodystart);
 forceclose:
 		close(newRequest);
 		free(predatastart);
 #ifdef DEBUG
 		printf("Closing fork\n");
+		gettimeofday(&end, NULL);
+		printf("Took %ld microseconds\n", (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec);
 #endif
 		return 0;
 	}

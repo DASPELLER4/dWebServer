@@ -13,5 +13,6 @@ int keyHash_(char *data);
 header_t *newHeaders();
 keyvalue_t parseHeader(char *);
 void *appendHeader(header_t *, keyvalue_t);
+char *searchHeader(header_t *, char *);
 
 #endif
