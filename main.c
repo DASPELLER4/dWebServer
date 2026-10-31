@@ -199,6 +199,19 @@ body:
 			printf("Found function at %lx\n", (long unsigned int)func);
 #endif
 			response_t response = func((request_t){type, path, parsedHeaders, body});
+			char *finalResponse = malloc(response.responseSize);
+			char *compiledHeaders = malloc(response.responseSize);
+			for(int i = 0; i<response.headers->size; i++){
+				strcat(compiledHeaders, response.headers->headers[i].key);
+				strcat(compiledHeaders, ": ");
+				strcat(compiledHeaders, response.headers->headers[i].value);
+				strcat(compiledHeaders, "\r\n");
+			}
+			snprintf(finalResponse, response.responseSize, "HTTP/1.1 %d %s\r\n%s\r\n%s", response.statusCode, response.statusText, compiledHeaders, response.body);
+#ifdef DEBUG
+			printf("Responding:\n%s\n", finalResponse);
+#endif
+			send(newRequest, finalResponse, response.responseSize, 0);
 		} else {
 #ifdef DEBUG
 			printf("Should send 404 page\n");

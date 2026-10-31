@@ -50,6 +50,10 @@ response_t (*getEndpoint(char *path))(request_t){
 
 response_t root(request_t request){
 	printf("/ Accessed\n");
+	header_t *headers = newHeaders();
+	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
+	appendHeader(headers, (keyvalue_t){0,"Content-Length","43"});
+	return (response_t){200, "OK", headers, "<!DOCTYPE html><body><h1>Hello!</h1></body>", 43+100};
 }
 
 #endif
