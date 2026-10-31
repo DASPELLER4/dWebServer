@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <string.h>
 
 #include "consts.h"
@@ -44,6 +45,12 @@ int main(int argc, char **argv){
         socklen_t addrlen = sizeof(socketAddress);
         printf("Server started on port %d\n", PORT);
         while(1){
+		int pid,status;
+		while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+#ifdef DEBUG
+			printf("Terminated child process %d\n", pid);
+#endif
+		}
                 if ((newRequest = accept(serverFd, (struct sockaddr*)&socketAddress, &addrlen)) < 0) {
                         fprintf(stderr,"Failed getting new request\n");
                         continue;
@@ -64,7 +71,8 @@ int main(int argc, char **argv){
 		struct timeval start, end;
 		gettimeofday(&start, NULL);
 #endif
-		char *predata = calloc(PREDATASIZE, sizeof(char)); // basically data to find the HTTP header with
+		char *predata = malloc(PREDATASIZE); // basically data to find the HTTP header with
+		predata[0] = 0;
 		char *predatastart = predata;
 		long datafillsize = read(newRequest, predata, PREDATASIZE-1);
 #ifdef DEBUG
