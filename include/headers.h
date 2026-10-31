@@ -9,7 +9,7 @@ typedef struct{
 	keyvalue_t *headers;
 } header_t;
 
-int keyHash(char *data);
+int keyHash_(char *data);
 header_t *newHeaders();
 keyvalue_t parseHeader(char *);
 void *appendHeader(header_t *, keyvalue_t);

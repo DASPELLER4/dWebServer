@@ -69,7 +69,7 @@ int main(int argc, char **argv){
 		printf("Request ID: #%d\nPredata size: %ld\nPredata used: %ld\n", requestCount, (long)PREDATASIZE, datafillsize);
 		if(datafillsize >= PREDATASIZE-1)
 			printf("Second read() will be required!\n");
-		printf("Data:\n%s\n", predata);
+		//printf("Data:\n%s\n", predata);
 #endif
 		// start parsing request
 		// get the path
@@ -135,7 +135,9 @@ headerslabel:
 			if(*predata == '\n'){
 				*predata = 0;
 				appendHeader(parsedHeaders, parseHeader(currentHeader));
+#ifdef DEBUG
 				printf("%lx:\n\t%s\n", (long) currentHeader, currentHeader);
+#endif
 				currentHeader = predata+1;
 			} else if(*predata == '\r'){
 				*predata = 0;
@@ -157,11 +159,26 @@ body:
 		}
 		printf("Started parsing body\n");
 #endif
+		char *contentlengthc = NULL;
+		int searchHash = keyHash_("Content-Length");
+		for(int i = 0; i < parsedHeaders->count; i++){
+			if(parsedHeaders->headers[i].keyHash == searchHash){
+				contentlengthc = parsedHeaders->headers[i].value;
+				break;
+			}
+		}
+		int contentlength = atoi(contentlengthc);
+#ifdef DEBUG
+		printf("Content-Length is %d\n", contentlength);
+#endif
 		free(parsedHeaders->headers);
 		free(parsedHeaders);
 forceclose:
 		close(newRequest);
 		free(predatastart);
+#ifdef DEBUG
+		printf("Closing fork\n");
+#endif
 		return 0;
 	}
 }
