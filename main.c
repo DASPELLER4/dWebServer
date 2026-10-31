@@ -134,10 +134,10 @@ headerslabel:
 		for(;;predata++){
 			if(*predata == '\n'){
 				*predata = 0;
-				appendHeader(parsedHeaders, parseHeader(currentHeader));
 #ifdef DEBUG
 				printf("%lx:\n\t%s\n", (long) currentHeader, currentHeader);
 #endif
+				appendHeader(parsedHeaders, parseHeader(currentHeader));
 				currentHeader = predata+1;
 			} else if(*predata == '\r'){
 				*predata = 0;
