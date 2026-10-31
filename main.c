@@ -8,17 +8,16 @@
 #include <string.h>
 
 #include "consts.h"
-#include "body.h"
+#include "request.h"
 #include "response.h"
+#include "endpoints.h"
 
 #ifdef DEBUG
 int requestCount = 0;
 #endif
 
-// where our endpoint functions will be stored
-response_t *(*endpointHashMap[ENDPOINTHASHSIZE])(char *, body_t *) = {NULL, };
-
 int main(int argc, char **argv){
+	loadEndpoints; // macro
 	int socketOpt = 1, serverFd;
 	if((serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		fprintf(stderr,"Failed opening a socket\n");
@@ -182,10 +181,21 @@ body:
 		}
 		char *body = predata;
 		long bodyLength = contentlength;
-#if DEBUG
+#ifdef DEBUG
 		printf("Body data:\n%s\n",body);
 		printf("Expected size: %ld, strlen size: %ld\n", bodyLength, strlen(body));
 #endif
+		response_t (*func)(request_t) = getEndpoint(path);
+		if(func){
+#ifdef DEBUG
+			printf("Found function at %lx\n", (long unsigned int)func);
+#endif
+			response_t response = func((request_t){type, path, parsedHeaders, body});
+		} else {
+#ifdef DEBUG
+			printf("Should send 404 page\n");
+#endif
+		}
 		free(parsedHeaders->headers);
 		free(parsedHeaders);
 		if(bodystart)
