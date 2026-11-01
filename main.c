@@ -18,14 +18,13 @@ int requestCount = 0;
 #endif
 
 int main(int argc, char **argv){
-	loadEndpoints; // macro
+	endpoints; // macro
 	int socketOpt = 1, serverFd;
 	if((serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		fprintf(stderr,"Failed opening a socket\n");
 		return 1;
 	}
 	if(setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socketOpt, sizeof(socketOpt))){
-
 		fprintf(stderr,"Failed attaching socket\n");
 		return 1;
 	}
