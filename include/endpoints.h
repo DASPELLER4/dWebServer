@@ -1,6 +1,8 @@
 #ifndef ENDPOINTS_H
 #define ENDPOINTS_H
 
+#include <string.h>
+
 #include "response.h"
 #include "request.h"
 #include "consts.h"
@@ -20,11 +22,19 @@ void addEndpoint(response_t (*)(request_t), char *);
 long pathHash(char *);
 response_t (*getEndpoint(char*))(request_t);
 
-
 pushEndpoints
 #undef endpoints
 #define endpoints popEndpoints endpoints addEndpoint(root, "/");
 response_t root(request_t);
 
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(fupload, "/fileupload");
+response_t fupload(request_t);
+
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(favicon, "/favicon.ico");
+response_t favicon(request_t);
 
 #endif

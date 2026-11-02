@@ -8,7 +8,14 @@ typedef struct{
 	char *statusText;
 	header_t *headers;
 	char *body;
-	int responseSize; // may rework this into a better mechanism
+	long bodySize;
 } response_t;
+
+typedef struct{
+	char *data;
+	long dataSize;
+} compiledResponse_t;
+
+compiledResponse_t compileResponse(response_t);
 
 #endif

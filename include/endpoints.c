@@ -52,8 +52,35 @@ response_t root(request_t request){
 	printf("/ Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	appendHeader(headers, (keyvalue_t){0,"Content-Length","43"});
-	return (response_t){200, "OK", headers, "<!DOCTYPE html><body><h1>Hello!</h1></body>", 43+100};
+	appendHeader(headers, (keyvalue_t){0,"Content-Length","128"});
+	char *body = "<!DOCTYPE html><body><h1>Hello!</h1><form action=\"fileupload\" method=\"post\"><input type=\"file\" name=\"file\"><input type=\"submit\"></form></body>";
+	return (response_t){200, "OK", headers, body, strlen(body)+1}; // +1 to include the null terminator
+}
+
+response_t fupload(request_t request){
+	printf("/fileupload Accessed\n");
+	header_t *headers = newHeaders();
+	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
+	appendHeader(headers, (keyvalue_t){0,"Content-Length","51"});
+	char *body = "<!DOCTYPE html><body><h1>File Uploaded!</h1></body>";
+	return (response_t){200, "OK", headers, body, strlen(body)+1};
+}
+
+response_t favicon(request_t request){
+	printf("/favicon Accessed\n");
+	FILE *fp = fopen("include/favicon.ico", "r");
+	fseek(fp, 0, SEEK_END);
+	long len = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	char d[120] = {0};
+	sprintf(d, "%ld", len);
+	header_t *headers = newHeaders();
+	appendHeader(headers, (keyvalue_t){0,"Content-Type","image/x-icon"}); // keyHash is not necessary for a response
+	appendHeader(headers, (keyvalue_t){0,"Content-Length",d});
+	char *body = malloc(len);
+	fread(body, len, 1, fp);
+	fclose(fp);
+	return (response_t){200, "OK", headers, body, len};
 }
 
 #endif

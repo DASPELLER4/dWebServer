@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude -MMD -MP -DPORT=3000 -DDEBUG -std=gnu99
+CFLAGS = -Iinclude -MMD -MP -DPORT=3000 -std=gnu99 -DDEBUG
 
 SRC = main.c $(wildcard include/*.c)
 
