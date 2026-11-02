@@ -135,30 +135,59 @@ headerslabel:
 			goto forceclose;
 		}
 		char *headers = predata;
-		char *currentHeader = predata;
+		char *currentKey = predata;
+		char *currentValue = NULL;
+		int currentHash = 0;
 		int headerLength = 0;
 		header_t *parsedHeaders = newHeaders();
 #ifdef DEBUG
 		printf("Type[%d]: %s\nPath[%d]: %s\nVersion[%d]: %s\n", typeLength, type, pathLength, path, versionLength, version);
 #endif
+		goto individualheader;
+backintoheader:
 		for(;;predata++){
 			if(*predata == '\n'){
 				*predata = 0;
 #ifdef DEBUG
-				printf("%lx:\n\t%s\n", (long) currentHeader, currentHeader);
+				printf("%lx:\n\t%s: %s\n", (long) currentKey, currentKey, currentValue);
 #endif
-				appendHeader(parsedHeaders, parseHeader(currentHeader)); // might make this function inline in this loop since looking backwards
-											 // in a string already iterated through seems silly
-				currentHeader = predata+1;
-			} else if(*predata == '\r'){
-				*predata = 0;
-				if(predata == currentHeader){
-					predata += 2; // this is a hack and should be done properly
-					goto body;
-				}
-			} else if(*predata == '\0'){
+				predata++;
+				appendHeader(parsedHeaders, (keyvalue_t){currentHash, currentKey, currentValue});
+				currentKey = predata;
+				currentValue = NULL;
+				currentHash = 0;
+				goto individualheader;
+			} else if(*predata == '\0' || *predata == '\r'){
 				fprintf(stderr, "Encountered malformed header\n");
 				goto forceclose;
+			}
+			headerLength++;
+		}
+individualheader:
+		int isKey = 1;
+		for(;;predata++){
+			if(*predata == ':'){
+				*predata = isKey = 0;
+				for(;*predata!=' ';predata++)
+					headerLength++;
+				currentValue = predata;
+			} else if(*predata == '\r'){
+				*predata = 0;
+				if(predata == currentKey){
+					predata += 2; // still the same hack but now with worse code quality :D
+					goto body;
+				}
+				predata++;
+				goto backintoheader;
+			} else if(*predata == '\0' || *predata == '\n'){
+				fprintf(stderr, "Encountered malformed header\n");
+				goto forceclose;
+			} else if(isKey){ // inline hashing, could further be optimised with more gotos, but thats psychotic (running if(isKey) wastes TOO many cycles :D)
+		                if((*predata<'N' && *predata>='A') || (*predata<'n' && *predata>='a'))
+                		        currentHash = (currentHash >> 1) | (currentHash << sizeof(int)-1);
+		                else if((*predata>='N' && *predata<='Z') || (*predata>='n' && *predata<='z'))
+	                	        currentHash = (currentHash << 1) | (currentHash >> sizeof(int)-1);
+		                currentHash += (*predata^0x9a)*23;
 			}
 			headerLength++;
 		}

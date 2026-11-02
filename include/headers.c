@@ -27,26 +27,6 @@ header_t *newHeaders(){
 	return newHeader;
 }
 
-keyvalue_t parseHeader(char *header){
-	char *key = header;
-	int hash = 0;
-	for(;;header++){
-		if(*header == ':'){
-			*header = 0;
-			header++;
-			hash = keyHash_(key);
-			goto value;
-		} else if(*header == '\0'){
-			return (keyvalue_t){keyHash_(key),key,NULL};
-		}
-	}
-value:
-	char *value = header;
-	// maybe do something more
-	for(;*value==' ';*value++);
-	return (keyvalue_t){hash, key, value};
-}
-
 void *appendHeader(header_t *headers, keyvalue_t header){
 	if(headers->count >= headers->size){
 		headers->size *= 2;
