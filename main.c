@@ -205,9 +205,19 @@ body:
 		if(contentlengthc){
 			contentlength = atol(contentlengthc);
 			if(contentlength > PREDATASIZE-(predata-predatastart)){
-				char *temp = malloc(contentlength);
+				char *temp = malloc(contentlength + PREDATASIZE-(predata-predatastart));
+#ifdef DEBUG
+				printf("Allocating %ld bytes\n", contentlength + PREDATASIZE-(predata-predatastart));
+#endif
 				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
-				read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1, contentlength-(PREDATASIZE-(predata-predatastart)-1));
+				int offset = 0;
+				int new = 0;
+				while(new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset)){
+					offset += new;
+#ifdef DEBUG
+					printf("Moved %d bytes (+%d)\n", offset, new);
+#endif
+				}
 				predata = temp;
 				// cannot free predata/predatastart here because many strings depend on them
 			}
