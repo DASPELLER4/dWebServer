@@ -71,14 +71,51 @@ response_t formsubmit(request_t request){
 	}
 	char *start = contentType;
 	for(;*contentType!=';';contentType++);
-	*contentType = 0;
+	*contentType = 0; // make sure you know whether doing this is safe
 	if(strcmp(start, "multipart/form-data")){
+errorout:
 		char *body = "<!DOCTYPE html><body><h1>Your form is bad!</h1></body>";
 		int len = strlen(body);
 		char d[120] = {0};
 		sprintf(d, "%d", len);
 		appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
 		return (response_t){400, "Bad Request", headers, body, len+1};
+	}
+	int currentLineIsBoundary = 0;
+	int counter = 0;
+	char *formBody = request.body;
+	char *descriptor = NULL;
+	char *value = NULL;
+	for(; *formBody; formBody++){
+		if(*formBody == '-'){
+			currentLineIsBoundary += 1;
+			if(currentLineIsBoundary >= 2){ // skip the current line
+				for(;*formBody!='\n'; formBody++);
+				formBody++;
+				if(!*formBody)
+					break;
+				currentLineIsBoundary = 0;
+			} else
+				continue;
+		}
+		if(counter % 2 == 0){ // we're reading a descriptor
+			descriptor = formBody;
+			for(;*formBody!='\r'; formBody++)
+				if(!*formBody)
+					goto errorout;
+			*formBody = 0;
+			formBody += 3;
+			counter++;
+		} else {
+			value = formBody;
+			for(;*formBody!='\r'; formBody++)
+				if(!*formBody)
+					goto errorout;
+			*formBody = 0;
+			printf("%s %s\n", descriptor, value);
+			formBody += 2;
+			counter++;
+		}
 	}
 	char *body = "<!DOCTYPE html><body><h1>Form Recieved!</h1></body>";
 	int len = strlen(body);
