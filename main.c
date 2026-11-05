@@ -171,7 +171,7 @@ backintoheader:
 individualheader:
 		int isKey = 1;
 		for(;;predata++){
-			if(*predata == ':'){
+			if(*predata == ':' && isKey){
 				*predata = isKey = 0;
 				predata++;
 				headerLength++;
