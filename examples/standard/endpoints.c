@@ -52,7 +52,7 @@ response_t root(request_t request){
 	printf("/ Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	char *body = "<!DOCTYPE html><body><h1>Hello!</h1><form action=\"fileupload\" method=\"post\" enctype=\"multipart/form-data\"><input type=\"file\" name=\"file\"><input type=\"submit\"></form></body>";
+	char *body = "<!DOCTYPE html><body><h1>Hello!</h1><form action=\"formsubmit\" method=\"post\" enctype=\"multipart/form-data\"><input type=\"text\" name=\"username\" placeholder=\"Your name\"><br><textarea name=\"message\" placeholder=\"Your message\" rows=10></textarea><input type=\"submit\"></form></body>";
 	int len = strlen(body);
 	char d[120] = {0};
 	sprintf(d, "%d", len);
@@ -60,11 +60,27 @@ response_t root(request_t request){
 	return (response_t){200, "OK", headers, body, len+1}; // +1 to include the null terminator
 }
 
-response_t fupload(request_t request){
+response_t formsubmit(request_t request){
 	printf("/fileupload Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	char *body = "<!DOCTYPE html><body><h1>File Uploaded!</h1></body>";
+	char *contentType = searchHeader(request.headers, "Content-Type");
+	if(!contentType){
+		header_t *headers = newHeaders();
+		return (response_t){500, "Internal Server Error", headers, NULL, 0};	
+	}
+	char *start = contentType;
+	for(;*contentType!=';';contentType++);
+	*contentType = 0;
+	if(strcmp(start, "multipart/form-data")){
+		char *body = "<!DOCTYPE html><body><h1>Your form is bad!</h1></body>";
+		int len = strlen(body);
+		char d[120] = {0};
+		sprintf(d, "%d", len);
+		appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
+		return (response_t){400, "Bad Request", headers, body, len+1};
+	}
+	char *body = "<!DOCTYPE html><body><h1>Form Recieved!</h1></body>";
 	int len = strlen(body);
 	char d[120] = {0};
 	sprintf(d, "%d", len);
@@ -74,7 +90,12 @@ response_t fupload(request_t request){
 
 response_t favicon(request_t request){
 	printf("/favicon Accessed\n");
-	FILE *fp = fopen("include/favicon.ico", "r");
+	FILE *fp = fopen("examples/standard/favicon.ico", "r");
+	if(!fp){
+		printf("Favicon file access failed\n");
+		header_t *headers = newHeaders();
+		return (response_t){500, "Internal Server Error", headers, NULL, 0};
+	}
 	fseek(fp, 0, SEEK_END);
 	long len = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
@@ -87,6 +108,18 @@ response_t favicon(request_t request){
 	fread(body, len, 1, fp);
 	fclose(fp);
 	return (response_t){200, "OK", headers, body, len};
+}
+
+response_t fourohfour(request_t request){
+	printf("404 Reached\n");
+	header_t *headers = newHeaders();
+	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"});
+	char *body = "<!DOCTYPE html><body><h1>404</h1><p>No such page found!!</p></body>";
+	int len = strlen(body);
+	char d[120] = {0};
+	sprintf(d, "%d", len);
+	appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
+	return (response_t){404, "Not Found", headers, body, len+1};
 }
 
 #endif

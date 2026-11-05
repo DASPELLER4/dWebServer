@@ -11,6 +11,11 @@
 #include "consts.h"
 #include "request.h"
 #include "response.h"
+#ifndef ENDPOINTSFOLDER
+	#error "No endpoints set, please specify the directory containing your endpoints.c/h using make ENDPOINTS=<your folder>"
+	#include <read the error above>
+#endif
+
 #include "endpoints.h"
 
 #ifdef DEBUG
@@ -168,7 +173,9 @@ individualheader:
 		for(;;predata++){
 			if(*predata == ':'){
 				*predata = isKey = 0;
-				for(;*predata!=' ';predata++)
+				predata++;
+				headerLength++;
+				for(;*predata==' ';predata++)
 					headerLength++;
 				currentValue = predata;
 			} else if(*predata == '\r'){
@@ -210,14 +217,17 @@ body:
 				printf("Allocating %ld bytes\n", contentlength + PREDATASIZE-(predata-predatastart));
 #endif
 				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
-				int offset = 0;
-				int new = 0;
+				long offset = 0;
+				long new = 0;
 				while(new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset)){
 					offset += new;
 #ifdef DEBUG
-					printf("Moved %d bytes (+%d)\n", offset, new);
+					printf("\rMoved %ld bytes (+%ld)", offset, new);
 #endif
 				}
+#ifdef DEBUG
+				printf("\n");
+#endif
 				predata = temp;
 				// cannot free predata/predatastart here because many strings depend on them
 			}
@@ -244,8 +254,18 @@ body:
 #endif
 			send(newRequest, compiledResponse.data, compiledResponse.dataSize ,0);
 		} else {
+#ifdef is404
 #ifdef DEBUG
-			printf("Should send 404 page\n");
+			printf("Running 404\n");
+#endif
+			response_t response = fourohfour((request_t){type, path, parsedHeaders, body});
+			compiledResponse_t compiledResponse = compileResponse(response);
+#ifdef DEBUG
+			printf("Responding:\n%s\n", compiledResponse.data);
+#endif
+			send(newRequest, compiledResponse.data, compiledResponse.dataSize ,0);
+#elifdef DEBUG
+			printf("No 404 page supplied; Closing connection\n");
 #endif
 		}
 		free(parsedHeaders->headers);

@@ -1,7 +1,21 @@
 CC = gcc
-CFLAGS = -Iinclude -MMD -MP -DPORT=3000 -std=gnu99 -DDEBUG
+CFLAGS = -Iinclude -MMD -MP -std=gnu99
+SRC = main.c $(wildcard include/*.c) 
 
-SRC = main.c $(wildcard include/*.c)
+ifdef ENDPOINTS
+	CFLAGS += -DENDPOINTSFOLDER="$(ENDPOINTS)" -I"$(ENDPOINTS)"
+	SRC += $(wildcard $(ENDPOINTS)/*.c)
+endif
+
+ifdef PORT
+	CFLAGS += -DPORT=$(PORT) 
+else
+	CFLAGS += -DPORT=80 
+endif
+
+ifdef DEBUG
+	CFLAGS += -DDEBUG -g
+endif
 
 OBJ = $(patsubst %.c,obj/%.o,$(SRC))
 

@@ -29,12 +29,15 @@ response_t root(request_t);
 
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(fupload, "/fileupload");
-response_t fupload(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(formsubmit, "/formsubmit");
+response_t formsubmit(request_t);
 
 pushEndpoints
 #undef endpoints
 #define endpoints popEndpoints endpoints addEndpoint(favicon, "/favicon.ico");
 response_t favicon(request_t);
+
+#define is404
+response_t fourohfour(request_t);
 
 #endif
