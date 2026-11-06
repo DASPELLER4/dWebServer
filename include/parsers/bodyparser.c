@@ -66,7 +66,7 @@ backin:
 				currentParams = bodyIter;
 				for(;*bodyIter != '\r'; bodyIter++);
 				*bodyIter = 0;
-				bodyIter = bodyIter + 4;
+				bodyIter += 2;
 				currentValue = bodyIter;
 				break;
 			case 2:
@@ -87,6 +87,8 @@ readdata:
 	parsedBody.data[parsedBody.count].size = 2;
 	parsedBody.data[parsedBody.count].count = 0;
 	parsedBody.data[parsedBody.count].params = malloc(sizeof(keyvalue_t) * 2);
+	if(currentValue[0] == '\r' && currentValue[1] == '\n')
+		currentValue += 2;
 	parsedBody.data[parsedBody.count].value = currentValue;
 	char *currentField = currentParams;
 	char *currentFieldValue = NULL;
