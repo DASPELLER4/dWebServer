@@ -11,6 +11,7 @@
 #include "consts.h"
 #include "request.h"
 #include "response.h"
+#include "defineendpoints.h"
 #ifndef ENDPOINTSFOLDER
 	#error "No endpoints set, please specify the directory containing your endpoints.c/h using make ENDPOINTS=<your folder>"
 	#include <read the error above>
