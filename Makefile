@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Iinclude -MMD -MP -std=gnu99
-SRC = main.c $(wildcard include/*.c) 
+CFLAGS = -Iinclude -Iinclude/parsers -MMD -MP -std=gnu99
+SRC = main.c $(wildcard include/*.c) $(wildcard include/parsers/*.c) 
 
 ifdef ENDPOINTS
 	CFLAGS += -DENDPOINTSFOLDER="$(ENDPOINTS)" -I"$(ENDPOINTS)"

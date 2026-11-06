@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "endpoints.h"
+#include "bodyparser.h"
 
 response_t (*endpointHashMap[ENDPOINTHASHSIZE])(request_t);
 
@@ -59,64 +60,11 @@ response_t root(request_t request){
 	appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
 	return (response_t){200, "OK", headers, body, len+1}; // +1 to include the null terminator
 }
-
 response_t formsubmit(request_t request){
-	printf("/fileupload Accessed\n");
+	printf("/formsubmit Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	char *contentType = searchHeader(request.headers, "Content-Type");
-	if(!contentType){
-		header_t *headers = newHeaders();
-		return (response_t){500, "Internal Server Error", headers, NULL, 0};	
-	}
-	char *start = contentType;
-	for(;*contentType!=';';contentType++);
-	*contentType = 0; // make sure you know whether doing this is safe
-	if(strcmp(start, "multipart/form-data")){
-errorout:
-		char *body = "<!DOCTYPE html><body><h1>Your form is bad!</h1></body>";
-		int len = strlen(body);
-		char d[120] = {0};
-		sprintf(d, "%d", len);
-		appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
-		return (response_t){400, "Bad Request", headers, body, len+1};
-	}
-	int currentLineIsBoundary = 0;
-	int counter = 0;
-	char *formBody = request.body;
-	char *descriptor = NULL;
-	char *value = NULL;
-	for(; *formBody; formBody++){
-		if(*formBody == '-'){
-			currentLineIsBoundary += 1;
-			if(currentLineIsBoundary >= 2){ // skip the current line
-				for(;*formBody!='\n'; formBody++);
-				formBody++;
-				if(!*formBody)
-					break;
-				currentLineIsBoundary = 0;
-			} else
-				continue;
-		}
-		if(counter % 2 == 0){ // we're reading a descriptor
-			descriptor = formBody;
-			for(;*formBody!='\r'; formBody++)
-				if(!*formBody)
-					goto errorout;
-			*formBody = 0;
-			formBody += 3;
-			counter++;
-		} else {
-			value = formBody;
-			for(;*formBody!='\r'; formBody++)
-				if(!*formBody)
-					goto errorout;
-			*formBody = 0;
-			printf("%s %s\n", descriptor, value);
-			formBody += 2;
-			counter++;
-		}
-	}
+	parseMultiFormData(request);
 	char *body = "<!DOCTYPE html><body><h1>Form Recieved!</h1></body>";
 	int len = strlen(body);
 	char d[120] = {0};
