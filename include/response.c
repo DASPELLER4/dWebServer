@@ -7,7 +7,7 @@
 
 #include "response.h"
 
-#define expandHeaders if(compiledCount>=compiledSize){compiledSize *= 2; compiledHeaders = realloc(compiledHeaders, compiledSize*2);}
+#define expandHeaders if(compiledCount>=compiledSize-10){compiledSize *= 2; compiledHeaders = realloc(compiledHeaders, compiledSize*2);}
 
 compiledResponse_t compileResponse(response_t response){
 	int compiledSize = 100;

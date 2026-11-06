@@ -130,14 +130,27 @@ readdata:
 		if(parsedBody.data[parsedBody.count].params[j].keyHash != searchValue)
 			continue;
 		// we're looking at a file
-		char temp = parsedBody.data[parsedBody.count].value[13];
+		char temp = parsedBody.data[parsedBody.count].value[12];
 		char *start = parsedBody.data[parsedBody.count].value;
-		parsedBody.data[parsedBody.count].value[13] = 0;
-		if(strcmp("Content-Type:", parsedBody.data[parsedBody.count].value)){
-			parsedBody.data[parsedBody.count].value[13] = temp;
+		parsedBody.data[parsedBody.count].value[12] = 0;
+		if(strcmp("Content-Type", parsedBody.data[parsedBody.count].value)){
+			parsedBody.data[parsedBody.count].value[12] = temp;
 			break;
 		}
-		for(;*parsedBody.data[parsedBody.count].value != '\n'; parsedBody.data[parsedBody.count].value++);
+		parsedBody.data[parsedBody.count].value += 13;
+		for(;*parsedBody.data[parsedBody.count].value == ' '; parsedBody.data[parsedBody.count].value++);
+		char *start2 = parsedBody.data[parsedBody.count].value;
+		for(;*parsedBody.data[parsedBody.count].value != '\r'; parsedBody.data[parsedBody.count].value++);
+		*parsedBody.data[parsedBody.count].value = 0;
+		parsedBody.data[parsedBody.count].value++;
+		if(parsedBody.data[parsedBody.count].count >= parsedBody.data[parsedBody.count].size){
+			parsedBody.data[parsedBody.count].size *= 2;
+			parsedBody.data[parsedBody.count].params = realloc(parsedBody.data[parsedBody.count].params, sizeof(keyvalue_t) * parsedBody.data[parsedBody.count].size);
+		}
+		parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].key = start;
+		parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].keyHash = keyHash_(start);
+		parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].value = start2;
+		parsedBody.data[parsedBody.count].count++;
 		if(parsedBody.data[parsedBody.count].value[2] == '\n')
 			parsedBody.data[parsedBody.count].value += 3;
 		else
@@ -153,7 +166,7 @@ out:
 	for(int i = 0; i < parsedBody.count; i++){
 		printf("Value[%d]: %s\nAdditional Params[%d]:\n", parsedBody.data[i].length, parsedBody.data[i].value, parsedBody.data[i].count);
 		for(int j = 0; j < parsedBody.data[i].count; j++){
-			printf("\tKey: %s | Value %s\n", parsedBody.data[i].params[j].key, parsedBody.data[i].params[j].value);
+			printf("\tKey: %s | Value: %s\n", parsedBody.data[i].params[j].key, parsedBody.data[i].params[j].value);
 		}
 	
 	}
