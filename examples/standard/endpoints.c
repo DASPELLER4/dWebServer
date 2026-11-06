@@ -53,7 +53,7 @@ response_t root(request_t request){
 	printf("/ Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	char *body = "<!DOCTYPE html><body><h1>Hello!</h1><form action=\"formsubmit\" method=\"post\" enctype=\"multipart/form-data\"><input type=\"text\" name=\"username\" placeholder=\"Your name\"><br><textarea name=\"message\" placeholder=\"Your message\" rows=10></textarea><input type=\"submit\"></form></body>";
+	char *body = "<!DOCTYPE html><body><h1>Hello!</h1><form action=\"formsubmit\" method=\"post\" enctype=\"multipart/form-data\"><input type=\"text\" name=\"username\" placeholder=\"Your name\"><br><textarea name=\"message\" placeholder=\"Your message\" rows=10></textarea><br><input type=\"file\" name=\"file\"><br><input type=\"submit\"></form></body>";
 	int len = strlen(body);
 	char d[120] = {0};
 	sprintf(d, "%d", len);

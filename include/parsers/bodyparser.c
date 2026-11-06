@@ -110,14 +110,13 @@ readdata:
 			currentField = currentParams;
 			currentFieldValue = NULL;
 		} else if(*currentParams == '\0'){
-			if(parsedBody.data[parsedBody.count].count == parsedBody.data[parsedBody.count].size){
+			if(parsedBody.data[parsedBody.count].count >= parsedBody.data[parsedBody.count].size){
 				parsedBody.data[parsedBody.count].size *= 2;
-				parsedBody.data = realloc(parsedBody.data[parsedBody.count].params, sizeof(keyvalue_t) * parsedBody.data[parsedBody.count].size);
+				parsedBody.data[parsedBody.count].params = realloc(parsedBody.data[parsedBody.count].params, sizeof(keyvalue_t) * parsedBody.data[parsedBody.count].size);
 			}
 			parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].key = currentField;
 			parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].value = currentFieldValue;
 			parsedBody.data[parsedBody.count].count++;
-			parsedBody.data[parsedBody.count].key = currentFieldValue;
 			break;
 		}
 	}
@@ -128,7 +127,7 @@ readdata:
 out:
 #ifdef DEBUG
 	for(int i = 0; i < parsedBody.count; i++){
-		printf("Key: %s | Value: %s\nAdditional Params[%d]:\n", parsedBody.data[i].key, parsedBody.data[i].value, parsedBody.data[i].count);
+		printf("Value: %s\nAdditional Params[%d]:\n", parsedBody.data[i].value, parsedBody.data[i].count);
 		for(int j = 0; j < parsedBody.data[i].count; j++){
 			printf("\tKey: %s | Value %s\n", parsedBody.data[i].params[j].key, parsedBody.data[i].params[j].value);
 		}

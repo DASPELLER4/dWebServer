@@ -8,10 +8,9 @@
 #include "keyvalues.h"
 
 typedef struct{
-	char *key;
 	int size;
 	int count;
-	keyvalue_t *params; //used for things like content-disposition
+	keyvalue_t *params; 
 	char *value;
 } parsedData_t;
 
