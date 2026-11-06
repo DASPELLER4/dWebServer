@@ -12,6 +12,7 @@ typedef struct{
 	int count;
 	keyvalue_t *params; 
 	char *value;
+	int length;
 } parsedData_t;
 
 typedef struct{
@@ -22,5 +23,6 @@ typedef struct{
 
 int isLineBoundary(char*, char*);
 parsedBody_t parseMultiFormData(request_t);
+parsedData_t *getField(parsedBody_t, char*);
 
 #endif

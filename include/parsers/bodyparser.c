@@ -51,8 +51,9 @@ parsedBody_t parseMultiFormData(request_t request){
 	int result;
 	char *currentValue = NULL;
 	char *currentParams = NULL;
+	int searchValue = keyHash_("filename");
 	parsedBody_t parsedBody = {2, 0, malloc(sizeof(parsedData_t)*2)};
-	for(;*bodyIter;bodyIter++){
+	for(;;bodyIter++){
 		result = isLineBoundary(bodyIter, boundary);
 		switch(result){
 			case 1:
@@ -89,6 +90,7 @@ readdata:
 	parsedBody.data[parsedBody.count].params = malloc(sizeof(keyvalue_t) * 2);
 	if(currentValue[0] == '\r' && currentValue[1] == '\n')
 		currentValue += 2;
+	parsedBody.data[parsedBody.count].length = bodyIter-2-currentValue;
 	parsedBody.data[parsedBody.count].value = currentValue;
 	char *currentField = currentParams;
 	char *currentFieldValue = NULL;
@@ -117,10 +119,30 @@ readdata:
 				parsedBody.data[parsedBody.count].params = realloc(parsedBody.data[parsedBody.count].params, sizeof(keyvalue_t) * parsedBody.data[parsedBody.count].size);
 			}
 			parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].key = currentField;
+			parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].keyHash = keyHash_(currentField);
 			parsedBody.data[parsedBody.count].params[parsedBody.data[parsedBody.count].count].value = currentFieldValue;
 			parsedBody.data[parsedBody.count].count++;
 			break;
 		}
+	}
+	// Content-Type is optional in the standard
+	for(int j = 0; j < parsedBody.data[parsedBody.count].count; j++){
+		if(parsedBody.data[parsedBody.count].params[j].keyHash != searchValue)
+			continue;
+		// we're looking at a file
+		char temp = parsedBody.data[parsedBody.count].value[13];
+		char *start = parsedBody.data[parsedBody.count].value;
+		parsedBody.data[parsedBody.count].value[13] = 0;
+		if(strcmp("Content-Type:", parsedBody.data[parsedBody.count].value)){
+			parsedBody.data[parsedBody.count].value[13] = temp;
+			break;
+		}
+		for(;*parsedBody.data[parsedBody.count].value != '\n'; parsedBody.data[parsedBody.count].value++);
+		if(parsedBody.data[parsedBody.count].value[2] == '\n')
+			parsedBody.data[parsedBody.count].value += 3;
+		else
+			parsedBody.data[parsedBody.count].value++;
+		parsedBody.data[parsedBody.count].length -= parsedBody.data[parsedBody.count].value - start;
 	}
 	parsedBody.count++;
 	if(result == 2)
@@ -129,13 +151,26 @@ readdata:
 out:
 #ifdef DEBUG
 	for(int i = 0; i < parsedBody.count; i++){
-		printf("Value: %s\nAdditional Params[%d]:\n", parsedBody.data[i].value, parsedBody.data[i].count);
+		printf("Value[%d]: %s\nAdditional Params[%d]:\n", parsedBody.data[i].length, parsedBody.data[i].value, parsedBody.data[i].count);
 		for(int j = 0; j < parsedBody.data[i].count; j++){
 			printf("\tKey: %s | Value %s\n", parsedBody.data[i].params[j].key, parsedBody.data[i].params[j].value);
 		}
+	
 	}
 #endif
 	return parsedBody;
+}
+
+parsedData_t *getField(parsedBody_t parsedBody, char *desiredField){
+	int searchValue = keyHash_(desiredField);
+	for(int i = 0; i < parsedBody.count; i++){
+		for(int j = 0; j < parsedBody.data[i].count; j++){
+			if(parsedBody.data[i].params[j].keyHash == searchValue){
+				return &(parsedBody.data[i]);
+			}
+		}
+	}
+	return NULL;
 }
 
 #endif
