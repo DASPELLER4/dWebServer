@@ -7,7 +7,7 @@
 
 #include "response.h"
 
-#define expandHeaders if(compiledCount>compiledSize-5) compiledHeaders = realloc(compiledHeaders, compiledSize *= 2);
+#define expandHeaders if(compiledCount>compiledSize-5){compiledSize *= 2; printf("expanding\n"); compiledHeaders = realloc(compiledHeaders, compiledSize*2);}
 
 compiledResponse_t compileResponse(response_t response){
 	int compiledSize = 100;
@@ -16,12 +16,15 @@ compiledResponse_t compileResponse(response_t response){
 	*compiledHeaders = 0;
 	for(int i = 0; i < response.headers->count; i++){
 		compiledCount += strlen(response.headers->headers[i].key);
+		expandHeaders;
 		strcat(compiledHeaders, response.headers->headers[i].key); 
 		compiledCount += 2;
 		strcat(compiledHeaders, ": ");
 		compiledCount += strlen(response.headers->headers[i].value);
+		expandHeaders;
 		strcat(compiledHeaders, response.headers->headers[i].value);
 		compiledCount += 2;
+		expandHeaders;
 		strcat(compiledHeaders, "\r\n");
 	}
 	if(response.headers->count < 1)
