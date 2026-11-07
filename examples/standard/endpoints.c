@@ -58,7 +58,7 @@ response_t formsubmit(request_t request){
 	HTMLEscape(message);
 	HTMLEscape(username);
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	static char body[1000] = {0};
+	char *body = malloc(1000 + 8 + 9 + 10 + username->length + message->length);
 	FILE *fp = fopen("examples/standard/messagedata", "a");
 	fwrite("<tr><td>", 1, 8, fp);
 	fwrite(username->value, 1, username->length, fp);
@@ -66,7 +66,7 @@ response_t formsubmit(request_t request){
 	fwrite(message->value, 1, message->length, fp);
 	fwrite("</td></tr>", 1, 10, fp);
 	fclose(fp);
-	int len = snprintf(body, 999, "<!DOCTYPE html><head><style>table,th,td{border: 1px solid black;}</style></head><body><h1>Form Recieved!</h1><table><tr><td>Username</td><td>Message</td></tr><tr><td>%s</td><td>%s</td></tr></table></body>", username->value, message->value);
+	int len = snprintf(body, 999 + 8 + 9 + 10 + username->length + message->length, "<!DOCTYPE html><head><style>table,th,td{border: 1px solid black;}</style></head><body><h1>Form Recieved!</h1><table><tr><td>Username</td><td>Message</td></tr><tr><td>%s</td><td>%s</td></tr></table></body>", username->value, message->value);
 	static char d[120] = {0};
 	sprintf(d, "%d", len);
 	appendHeader(headers, (keyvalue_t){0,"Content-Length", d});
@@ -104,7 +104,7 @@ response_t fourohfour(request_t request){
 	printf("404 Reached\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"});
-	char *body = "<!DOCTYPE html><body><h1>404</h1><p>No such page found!!</p></body>";
+	static char *body = "<!DOCTYPE html><body><h1>404</h1><p>No such page found!!</p></body>";
 	int len = strlen(body);
 	static char d[120] = {0};
 	sprintf(d, "%d", len);
