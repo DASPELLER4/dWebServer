@@ -11,9 +11,9 @@ int keyHash_(char *data){
 	int hash = 0;
 	for(char* i = data; *i; i++){
 		if((*i<'N' && *i>='A') || (*i<'n' && *i>='a'))
-			hash = (hash >> 1) | (hash << sizeof(int)-1);
+			hash = (hash >> 1) | (hash << (sizeof(int)-1));
 		else if((*i>='N' && *i<='Z') || (*i>='n' && *i<='z'))
-			hash = (hash << 1) | (hash >> sizeof(int)-1);
+			hash = (hash << 1) | (hash >> (sizeof(int)-1));
 		hash += (*i^0x9a)*23;
 	}
 	return hash;
@@ -27,7 +27,7 @@ header_t *newHeaders(){
 	return newHeader;
 }
 
-void *appendHeader(header_t *headers, keyvalue_t header){
+void appendHeader(header_t *headers, keyvalue_t header){
 	if(headers->count >= headers->size){
 		headers->size *= 2;
 		headers->headers = realloc(headers->headers, sizeof(keyvalue_t)*headers->size);

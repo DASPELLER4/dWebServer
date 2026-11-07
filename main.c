@@ -92,8 +92,6 @@ int main(int argc, char **argv){
 		char *type, *path, *version;
 		int typeLength, pathLength, versionLength;
 		typeLength = pathLength = versionLength = 0;
-type:
-		
 		type = predata;
 		for(;;predata++){
 			if(*predata == ' '){
@@ -140,11 +138,9 @@ headerslabel:
 			fprintf(stderr, "Recieved neither a GET nor POST request, unsupported!");
 			goto forceclose;
 		}
-		char *headers = predata;
 		char *currentKey = predata;
 		char *currentValue = NULL;
 		int currentHash = 0;
-		int headerLength = 0;
 		header_t *parsedHeaders = newHeaders();
 #ifdef DEBUG
 		printf("Type[%d]: %s\nPath[%d]: %s\nVersion[%d]: %s\n", typeLength, type, pathLength, path, versionLength, version);
@@ -167,7 +163,6 @@ backintoheader:
 				fprintf(stderr, "Encountered malformed header\n");
 				goto forceclose;
 			}
-			headerLength++;
 		}
 individualheader:
 		int isKey = 1;
@@ -175,9 +170,7 @@ individualheader:
 			if(*predata == ':' && isKey){
 				*predata = isKey = 0;
 				predata++;
-				headerLength++;
-				for(;*predata==' ';predata++)
-					headerLength++;
+				for(;*predata==' ';predata++);
 				currentValue = predata;
 			} else if(*predata == '\r'){
 				*predata = 0;
@@ -192,12 +185,11 @@ individualheader:
 				goto forceclose;
 			} else if(isKey){ // inline hashing, could further be optimised with more gotos, but thats psychotic (running if(isKey) wastes TOO many cycles :D)
 		                if((*predata<'N' && *predata>='A') || (*predata<'n' && *predata>='a'))
-                		        currentHash = (currentHash >> 1) | (currentHash << sizeof(int)-1);
+                		        currentHash = (currentHash >> 1) | (currentHash << (sizeof(int)-1));
 		                else if((*predata>='N' && *predata<='Z') || (*predata>='n' && *predata<='z'))
-	                	        currentHash = (currentHash << 1) | (currentHash >> sizeof(int)-1);
+	                	        currentHash = (currentHash << 1) | (currentHash >> (sizeof(int)-1));
 		                currentHash += (*predata^0x9a)*23;
 			}
-			headerLength++;
 		}
 body:
 #ifdef DEBUG
@@ -220,7 +212,7 @@ body:
 				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
 				long offset = 0;
 				long new = 0;
-				while(new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset)){
+				while((new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset))){
 					offset += new;
 #ifdef DEBUG
 					printf("\rMoved %ld bytes (+%ld)", offset, new);

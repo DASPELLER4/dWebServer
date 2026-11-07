@@ -11,7 +11,7 @@ typedef struct{
 
 int keyHash_(char *data);
 header_t *newHeaders();
-void *appendHeader(header_t *, keyvalue_t);
+void appendHeader(header_t *, keyvalue_t);
 char *searchHeader(header_t *, char *);
 
 #endif

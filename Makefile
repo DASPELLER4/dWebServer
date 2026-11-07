@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude -Iinclude/parsers -MMD -MP -std=gnu99
+CFLAGS = -Iinclude -Iinclude/parsers -MMD -MP -std=gnu99 -O3
 SRC = main.c $(wildcard include/*.c) $(wildcard include/parsers/*.c) 
 
 ifdef ENDPOINTS
