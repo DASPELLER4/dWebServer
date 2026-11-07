@@ -6,6 +6,7 @@
 
 #include "endpoints.h"
 #include "bodyparser.h"
+#include "utils.h"
 
 response_t root(request_t request){
 	printf("/ Accessed\n");
@@ -26,6 +27,8 @@ response_t formsubmit(request_t request){
 	parsedData_t *file = getFieldByName(parsedBody, "file");
 	parsedData_t *username = getFieldByName(parsedBody, "username");
 	parsedData_t *message = getFieldByName(parsedBody, "message");
+	HTMLEscape(message);
+	HTMLEscape(username);
 	static char body[1000] = {0};
 	int len = snprintf(body, 1000, "<!DOCTYPE html><head><style>table,th,td{border: 1px solid black;}</style></head><body><h1>Form Recieved!</h1><table><tr><td>Username</td><td>Message</td></tr><tr><td>%s</td><td>%s</td></tr></table></body>", username->value, message->value);
 	static char d[120] = {0};
