@@ -17,6 +17,10 @@ ifdef DEBUG
 	CFLAGS += -DDEBUG -g
 endif
 
+ifdef HASHSIZE
+	CFLAGS += -DENDPOINTHASHSIZE=$(HASHSIZE)
+endif
+
 OBJ = $(patsubst %.c,obj/%.o,$(SRC))
 
 DEP = $(OBJ:.o=.d)
