@@ -8,35 +8,37 @@
 
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(PnojUCsppX, "/images/logo.png");
-response_t PnojUCsppX(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(dwnCDaYByY, "/images/logo.png");
+response_t dwnCDaYByY(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(QyvIenpqyX, "/");
-response_t QyvIenpqyX(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(rstTcizlPZ, "/");
+response_t rstTcizlPZ(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(uvsJEYNDZu, "/index.html");
-response_t uvsJEYNDZu(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(AOOvCuKDdI, "/index.html");
+response_t AOOvCuKDdI(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(fPkZhuEihz, "/pages/hungrybug.html");
-response_t fPkZhuEihz(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(kfyqvwFkuq, "/pages/hungrybug.html");
+response_t kfyqvwFkuq(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(YDqLSVzJIA, "/pages/");
-response_t YDqLSVzJIA(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(uwejigiQmK, "/pages/");
+response_t uwejigiQmK(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(uUnzsaMRKx, "/pages/index.html");
-response_t uUnzsaMRKx(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(KypVZzgWog, "/pages/index.html");
+response_t KypVZzgWog(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(wWuSoRdtxW, "/pages/lorem.html");
-response_t wWuSoRdtxW(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(LyiUTWbqvt, "/pages/lorem.html");
+response_t LyiUTWbqvt(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(KfoesHgKLk, "/assets/stylesheet.css");
-response_t KfoesHgKLk(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(gKnHHbDGHO, "/assets/stylesheet.css");
+response_t gKnHHbDGHO(request_t);
+#define is404
+response_t fourohfour(request_t);
 
 #endif

@@ -24,8 +24,9 @@ endpointsc = """#ifndef ENDPOINTS_C
 """
 
 entries = {}
-
+fof = None
 def travelFolder(path):
+    global fof
     for entry in os.listdir(path):
         entry = path + entry
         if [x for x in ["generate.py", "endpoints.c", "endpoints.h", ".swp"] if x in entry]:
@@ -36,6 +37,8 @@ def travelFolder(path):
         if os.path.basename(entry) == 'index.html':
             entries[path[1:]] = entry
             entries[entry[1:]] = entry
+        elif entry == './404.html':
+            fof = entry
         else:
             entries[entry[1:]] = entry
 
@@ -62,6 +65,25 @@ response_t {functionName}(request_t);
     return (response_t){{200, "OK", headers, data, {len(content)}}};
 }}
 """
+
+if fof:
+    endpointsh += """#define is404
+response_t fourohfour(request_t);
+"""
+    content = None
+    with open(fof, "rb") as File:
+        content = File.read()
+    content += b'\0'
+    endpointsc += f"""response_t fourohfour(request_t request){{
+    header_t *headers = newHeaders();
+    appendHeader(headers, (keyvalue_t){{0, "Content-Type", "text/html"}});
+    appendHeader(headers, (keyvalue_t){{0, "Content-Length", "{len(content)}"}});
+    static char data[{len(content)}] = {{{','.join(hex(x) for x in content)}}};
+    return (response_t){{404, "Not Found", headers, data, {len(content)}}};
+}}
+"""
+
+    
 
 endpointsh += """
 #endif
