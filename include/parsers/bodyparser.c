@@ -107,8 +107,7 @@ readdata:
 			qmarkflag = 0;
 			*currentParams = 0;
 		} else if(!qmarkflag && (*currentParams == '"') && onValue){
-			currentParams++;
-			currentFieldValue = currentParams;
+			currentFieldValue = currentParams+1;
 			qmarkflag = 1;
 		}else if(*currentParams == ';' && !qmarkflag){
 			onValue = 0;

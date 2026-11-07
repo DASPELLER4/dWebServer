@@ -6,6 +6,10 @@
 #include "consts.h"
 #include "defineendpoints.h"
 
+#define init() initwebsite()
+
+void initwebsite();
+
 pushEndpoints
 #undef endpoints
 #define endpoints popEndpoints endpoints addEndpoint(root, "/");

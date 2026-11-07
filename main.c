@@ -25,6 +25,9 @@ int requestCount = 0;
 
 int main(int argc, char **argv){
 	endpoints; // macro
+#ifdef init
+	init(); // optional user-defined initialisation
+#endif
 	int socketOpt = 1, serverFd;
 	if((serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		fprintf(stderr,"Failed opening a socket\n");

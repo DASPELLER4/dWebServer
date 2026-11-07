@@ -15,7 +15,7 @@ void HTMLEscape(parsedData_t *data){ // replace \r\n with <br>, replace <,>,&,",
 	int size = (count+1)*2;
 	char *new = malloc(size);
 	memcpy(new, data->value, count+1);
-	for(int i = 0; new[i]; i++){
+	for(int i = 0; i < count; i++){
 		switch(new[i]){
 			case '\r':
 				if(new[i+1] == '\n'){
@@ -77,6 +77,9 @@ void HTMLEscape(parsedData_t *data){ // replace \r\n with <br>, replace <,>,&,",
 				new[i++] = '9';
 				new[i] = ';';
 				break;
+			case '\0':
+				new[i] = '_';
+
 		}
 	}
 	data->value = new;
