@@ -94,13 +94,19 @@ readdata:
 	parsedBody.data[parsedBody.count].value = currentValue;
 	char *currentField = currentParams;
 	char *currentFieldValue = NULL;
+	int qmarkflag = 0;
 	for(;;currentParams++){
-		if(*currentParams == ':' || *currentParams == '='){
+		if((*currentParams == ':' || *currentParams == '=') && !qmarkflag){
 			*currentParams = 0;
 			currentParams++;
 			for(;*currentParams == ' '; currentParams++);
+			if(*currentParams == '"')
+				currentParams += (qmarkflag = 1);
 			currentFieldValue = currentParams;
-		} else if(*currentParams == ';'){
+		} else if(qmarkflag && *currentParams == '"'){
+			qmarkflag = 0;
+			*currentParams = 0;
+		} else if(*currentParams == ';' && !qmarkflag){
 			*currentParams = 0;
 			currentParams++;
 			if(parsedBody.data[parsedBody.count].count == parsedBody.data[parsedBody.count].size){
