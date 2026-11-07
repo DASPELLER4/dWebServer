@@ -66,3 +66,12 @@ To run your server, just run
 ./server
 ```
 If you used a privileged port such as 80, you may need to run this command as root (not really recommended in this current stage of development).
+
+## Examples
+There are currently two examples:
+### `examples/standard`
+This example shows off almost all of the features of the webserver, with two dynamic pages, one that keeps memory of all requests to the second, and one that parses and saves the inputs to the page. It also has a favicon that is loaded as a file.
+
+This one is reasonably complex, since it parses body data and headers, but is still _reasonably_ understandable.
+### `examples/automaticstaticpage`
+This is an actually useful example that uses a python script and the current directory structure to automatically generate `endpoints.c` and `endpoints.h`, this allows you to generate static pages very quickly that also load very quickly on the server side.
