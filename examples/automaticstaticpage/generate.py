@@ -28,7 +28,7 @@ entries = {}
 def travelFolder(path):
     for entry in os.listdir(path):
         entry = path + entry
-        if [x for x in ["generate.py", "endpoints.c", "endpoints.h"] if x in entry]:
+        if [x for x in ["generate.py", "endpoints.c", "endpoints.h", ".swp"] if x in entry]:
             continue
         if os.path.isdir(entry):
             travelFolder(entry + '/')

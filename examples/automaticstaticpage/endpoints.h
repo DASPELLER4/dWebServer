@@ -8,19 +8,35 @@
 
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(GJUVJLNfrB, "/images/logo.png");
-response_t GJUVJLNfrB(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(PnojUCsppX, "/images/logo.png");
+response_t PnojUCsppX(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(QoHugBtlWS, "/");
-response_t QoHugBtlWS(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(QyvIenpqyX, "/");
+response_t QyvIenpqyX(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(LgAjyktDiI, "/index.html");
-response_t LgAjyktDiI(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(uvsJEYNDZu, "/index.html");
+response_t uvsJEYNDZu(request_t);
 pushEndpoints
 #undef endpoints
-#define endpoints popEndpoints endpoints addEndpoint(gWNzcFQcuy, "/assets/stylesheet.css");
-response_t gWNzcFQcuy(request_t);
+#define endpoints popEndpoints endpoints addEndpoint(fPkZhuEihz, "/pages/hungrybug.html");
+response_t fPkZhuEihz(request_t);
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(YDqLSVzJIA, "/pages/");
+response_t YDqLSVzJIA(request_t);
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(uUnzsaMRKx, "/pages/index.html");
+response_t uUnzsaMRKx(request_t);
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(wWuSoRdtxW, "/pages/lorem.html");
+response_t wWuSoRdtxW(request_t);
+pushEndpoints
+#undef endpoints
+#define endpoints popEndpoints endpoints addEndpoint(KfoesHgKLk, "/assets/stylesheet.css");
+response_t KfoesHgKLk(request_t);
 
 #endif

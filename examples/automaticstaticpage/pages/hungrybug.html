@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<style>
+	html{
+		font-family: 'lato',sans-serif;
+		background-color: #1f1f1f;
+		color: #b5b5b5;
+	}
+	#plateau{
+		width: 508px;
+		height: 376px;
+		background-image: url("https://sstk.biz/images/tablecloth2.png");
+		background-repeat: repeat;
+	}
+	.bug{
+		width: 22px;
+		height: 22px;
+		position: absolute;
+	}
+	.fruit{
+		width: 22px;
+		height: 22px;
+		position: absolute;
+	}
+	#head{
+		top: 198px;
+		left: 220px;
+		z-index: 1;
+	}
+	#gameStart{
+		position: absolute;
+		top: 66px;
+		left: 88px;
+		width: 300px;
+		text-align: left;
+		padding: 10px;
+		z-index: 2;
+		background-color: #212121;
+	}
+	#gameScreen{
+		width: 508px;
+		height: 376px;
+		position: relative;
+	}
+	#questionDiv{
+		background-color: #000;
+		padding: 4px;
+		position: absolute;
+		left: 515px;
+		top: 20px;
+		width: 331px;
+		height: 383px;
+	}
+	#questionDiv>span{
+		line-height: 1.6em;
+	}
+	#questionHeading{
+		font-weight: bold;
+	}
+	#answerHeading{
+		font-weight: bold;
+	}
+</style>
+<html>
+	<button onclick="pauseToggle();">Pause</button><span> Score: </span><span id="score">0</span><br>
+	<div id="gameScreen">
+		<div id="gameStart">
+			A question and three possible answers will be displayed in the area to the right.
+			<b>Use the arrow keys to move</b> <img src="https://sstk.biz/images/catepillar3.png" height="15" width="42"> 
+			to eat the food that corresponds to the correct answer.   Game ends if you run off the table or
+			into yourself.   For best score, avoid the food that doesn't match the current answer.</p>
+			<div style="text-align: center">
+				<button onclick="init()">Start using keyboard</button>
+			</div>
+		</div>
+		<div id="plateau">
+			<img class="bug" id="head" src="https://www.studystack.com/images/bughead.svg">
+		</div>
+	</div>
+	<div id="questionDiv">
+		<span id="questionHeading">Question:</span><span id="bugQuestion"></span>
+		<div id="answers">
+			<span id="answerHeading">Answer:</span><br>
+			<img id="food1" src="https://www.studystack.com/images/banana.svg" height="22" width="22" alt="food1">
+			<span id="answer0"></span><br>
+			<img id="food2" src="https://www.studystack.com/images/donut.svg" height="22" width="22" alt="food2">
+			<span id="answer1"></span><br>
+			<img id="food3" src="https://www.studystack.com/images/grapes.svg" height="22" width="22" alt="food3">
+			<span id="answer2"></span>
+		</div>
+	</div>
+</html>
+<script>
+	// jack imports the questions here!!!
+	let questions ={'What is 2+2':'4',
+			'What is 1+1':'2',
+			'What is 6/2':'3',
+			'What is 5+5':'10',
+			'What is 12/3':'4',
+			'What is 100-50':'50'}
+	// -1: none, 0: left, 1: up, 2: right, 3: down
+	let dir = -1;
+	let bugSegments = [];
+	let newSegment = true;
+	let head = [10,9];
+	let fruit = [];
+	let score = 0;
+	let activeDir = -1;
+	let runningInterval = 0;
+	let paused = false;
+	let scoreBonus = 20;
+	let correctAnswer = -1;
+	function getRandomSubarray(arr, size) {var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;while (i-- > min) {index = Math.floor((i + 1) * Math.random());temp = shuffled[index];shuffled[index] = shuffled[i];shuffled[i] = temp;}
+    return shuffled.slice(min);
+}
+	function pauseToggle(){
+		if(paused)
+			document.querySelectorAll('button')[0].innerText = "Pause";
+		else
+			document.querySelectorAll('button')[0].innerText = "Play";
+		paused = !paused;
+	}
+	function newQuestions(){
+		fruit = [];
+		document.querySelector('#answer0').style.textDecoration = '';
+		document.querySelector('#answer1').style.textDecoration = '';
+		document.querySelector('#answer2').style.textDecoration = '';
+		document.querySelectorAll('.fruit').forEach((fruitS) => {fruitS.remove();});
+		let selectedQuestions = getRandomSubarray(Object.entries(questions), 3);
+		correctAnswer = Math.min(Math.floor(Math.random() * 3),2);
+		let x = 0;
+		document.querySelector('#bugQuestion').innerText = selectedQuestions[correctAnswer][0];
+		let srcs = ["https://www.studystack.com/images/banana.svg", "https://www.studystack.com/images/donut.svg", "https://www.studystack.com/images/grapes.svg"];
+		for(const question of selectedQuestions){
+			document.querySelector('#answer'+x.toString()).innerText = selectedQuestions[x][1]
+			let newFruit = document.createElement('img');
+			newFruit.src = srcs[x];
+			newFruit.id = `fruit${x}`;
+			newFruit.className = "fruit";
+			fruit.push([Math.floor(Math.random() * 22), Math.floor(Math.random() * 16)]);
+			newFruit.style.left = `${fruit[x][0]*22}px`;
+			newFruit.style.top = `${fruit[x][1]*22}px`;
+			document.querySelector('#plateau').appendChild(newFruit);
+			x++;
+		}
+
+	}
+	function init(){
+		clearInterval(runningInterval);
+		dir = -1;
+		bugSegments = [];
+		score = 0;
+		newSegment = true;
+		head = [10,9];
+		fruit = [];
+		paused = false;
+		document.querySelector('#score').innerText = score.toString();
+		scoreBonus = 20;
+		activeDir = -1;
+		newQuestions();
+		document.querySelectorAll('.segment').forEach((segment) => {segment.remove();});
+		document.querySelector('#head').style.top = "198px";
+		document.querySelector('#head').style.left = "220px";
+		document.querySelector('#gameStart').hidden = true;
+		runningInterval = setInterval(gameLoop, 250);
+	}
+	document.addEventListener('keydown', function(event) {
+		if(parseInt(event.keyCode) <= 40 && parseInt(event.keyCode) >= 37) {
+			if({0:2, 1:3, 2:0, 3:1}[activeDir] == parseInt(event.keyCode)-37)
+				return;
+			dir = parseInt(event.keyCode)-37; 
+		}
+		if(event.keyCode == 32){
+			//newSegment = true;
+		}
+
+	});
+	function gameLoop(){
+		if(paused)
+			return;
+		if(dir == -1)
+			return;
+		activeDir = dir;
+		bugSegments = [[head[0],head[1]]].concat(bugSegments);
+		if(!newSegment)
+			bugSegments = bugSegments.slice(0,-1);
+		switch(dir){
+			case 0:
+				head[0] = head[0] - 1;
+				break;
+			case 1:
+				head[1] = head[1] - 1;
+				break;
+			case 2:
+				head[0] = head[0] + 1;
+				break;
+			case 3:
+				head[1] = head[1] + 1;
+				break;
+		}
+		if(head[0]<0 || head[0]>22 || head[1]>16 || head[1]<0){
+			head = [10,9];
+			clearInterval(runningInterval);
+			document.querySelectorAll('.segment').forEach((segment) => {segment.remove();});
+			document.querySelector('#head').style.left = `${head[0]*22}px`;
+			document.querySelector('#head').style.top = `${head[1]*22}px`;
+			document.querySelector('#gameStart').hidden = false;
+		}
+		document.querySelector('#head').style.left = `${head[0]*22}px`;
+		document.querySelector('#head').style.top = `${head[1]*22}px`;
+		if(newSegment){
+			let img = document.createElement('img');
+			img.className = "bug segment";
+			img.src = "https://www.studystack.com/images/bugbody.svg"
+			document.querySelector('#plateau').appendChild(img);
+			img.style.top = `${bugSegments[bugSegments.length-1][1]*22}px`;
+			img.style.left = `${bugSegments[bugSegments.length-1][0]*22}px`;
+			newSegment = false;
+		}
+		let x = 0;
+		document.querySelectorAll('.segment').forEach((segment) => {
+			segment.style.left = `${bugSegments[x][0]*22}px`;
+			segment.style.top = `${bugSegments[x][1]*22}px`;
+			x++;
+		});
+		x = 0;
+		let z = false;
+		fruit.forEach((fruitS)=>{
+			if(z) return;
+			if(!(fruitS[0] == head[0] && fruitS[1] == head[1]))
+				return x++;
+			if(x == correctAnswer){
+				newSegment = true;
+				newQuestions();
+				score += scoreBonus;
+				scoreBonus += 10;
+				document.querySelector('#score').innerText = score.toString();
+			}else{
+				bugSegments = bugSegments.slice(0,-1);
+				if(bugSegments.length <= 0){
+					head = [10,9];
+					clearInterval(runningInterval);
+					document.querySelectorAll('.segment').forEach((segment) => {segment.remove();});
+					document.querySelector('#head').style.left = `${head[0]*22}px`;
+					document.querySelector('#head').style.top = `${head[1]*22}px`;
+					document.querySelector('#gameStart').hidden = false;
+					z = true;
+					return;
+				}
+				document.querySelector('.segment').remove();
+				document.querySelector(`#fruit${x}`).remove();
+				document.querySelector(`#answer${x}`).style.textDecoration = 'line-through';
+			}
+			x++;
+		});
+		if(z) return;
+		bugSegments.forEach((segment)=>{
+			if(segment[0] == head[0] && segment[1] == head[1]){
+				head = [10,9];
+				clearInterval(runningInterval);
+				document.querySelectorAll('.segment').forEach((segment) => {segment.remove();});
+				document.querySelector('#head').style.left = `${head[0]*22}px`;
+				document.querySelector('#head').style.top = `${head[1]*22}px`;
+				document.querySelector('#gameStart').hidden = false;
+			}
+		});
+	}
+</script>
