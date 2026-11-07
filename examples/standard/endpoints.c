@@ -22,9 +22,12 @@ response_t formsubmit(request_t request){
 	printf("/formsubmit Accessed\n");
 	header_t *headers = newHeaders();
 	appendHeader(headers, (keyvalue_t){0,"Content-Type","text/html"}); // keyHash is not necessary for a response
-	parseMultiFormData(request);
-	char *body = "<!DOCTYPE html><body><h1>Form Recieved!</h1></body>";
-	int len = strlen(body);
+	parsedBody_t parsedBody = parseMultiFormData(request);
+	parsedData_t *file = getFieldByName(parsedBody, "file");
+	parsedData_t *username = getFieldByName(parsedBody, "username");
+	parsedData_t *message = getFieldByName(parsedBody, "message");
+	static char body[1000] = {0};
+	int len = snprintf(body, 1000, "<!DOCTYPE html><head><style>table,th,td{border: 1px solid black;}</style></head><body><h1>Form Recieved!</h1><table><tr><td>Username</td><td>Message</td></tr><tr><td>%s</td><td>%s</td></tr></table></body>", username->value, message->value);
 	static char d[120] = {0};
 	sprintf(d, "%d", len);
 	appendHeader(headers, (keyvalue_t){0,"Content-Length", d});

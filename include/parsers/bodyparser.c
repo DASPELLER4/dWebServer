@@ -95,18 +95,23 @@ readdata:
 	char *currentField = currentParams;
 	char *currentFieldValue = NULL;
 	int qmarkflag = 0;
+	int onValue = 0;
 	for(;;currentParams++){
-		if((*currentParams == ':' || *currentParams == '=') && !qmarkflag){
-			*currentParams = 0;
-			currentParams++;
+		if(onValue)
 			for(;*currentParams == ' '; currentParams++);
-			if(*currentParams == '"')
-				currentParams += (qmarkflag = 1);
-			currentFieldValue = currentParams;
-		} else if(qmarkflag && *currentParams == '"'){
+		if((*currentParams == ':' || *currentParams == '=') && !qmarkflag){
+			onValue = 1;
+			*currentParams = 0;
+			currentFieldValue = currentParams+1;
+		} else if(qmarkflag && (*currentParams == '"')){
 			qmarkflag = 0;
 			*currentParams = 0;
-		} else if(*currentParams == ';' && !qmarkflag){
+		} else if(!qmarkflag && (*currentParams == '"') && onValue){
+			currentParams++;
+			currentFieldValue = currentParams;
+			qmarkflag = 1;
+		}else if(*currentParams == ';' && !qmarkflag){
+			onValue = 0;
 			*currentParams = 0;
 			currentParams++;
 			if(parsedBody.data[parsedBody.count].count == parsedBody.data[parsedBody.count].size){
@@ -120,6 +125,7 @@ readdata:
 			currentField = currentParams;
 			currentFieldValue = NULL;
 		} else if(*currentParams == '\0'){
+			onValue = 0;
 			if(parsedBody.data[parsedBody.count].count >= parsedBody.data[parsedBody.count].size){
 				parsedBody.data[parsedBody.count].size *= 2;
 				parsedBody.data[parsedBody.count].params = realloc(parsedBody.data[parsedBody.count].params, sizeof(keyvalue_t) * parsedBody.data[parsedBody.count].size);
@@ -170,7 +176,7 @@ readdata:
 out:
 #ifdef DEBUG
 	for(int i = 0; i < parsedBody.count; i++){
-		printf("Value[%d]: %s\nAdditional Params[%d]:\n", parsedBody.data[i].length, parsedBody.data[i].value, parsedBody.data[i].count);
+		printf("Value[%lld]: %s\nAdditional Params[%d]:\n", parsedBody.data[i].length, parsedBody.data[i].value, parsedBody.data[i].count);
 		for(int j = 0; j < parsedBody.data[i].count; j++){
 			printf("\tKey: %s | Value: %s\n", parsedBody.data[i].params[j].key, parsedBody.data[i].params[j].value);
 		}
@@ -180,11 +186,10 @@ out:
 	return parsedBody;
 }
 
-parsedData_t *getField(parsedBody_t parsedBody, char *desiredField){
-	int searchValue = keyHash_(desiredField);
+parsedData_t *getFieldByName(parsedBody_t parsedBody, char *desiredField){
 	for(int i = 0; i < parsedBody.count; i++){
 		for(int j = 0; j < parsedBody.data[i].count; j++){
-			if(parsedBody.data[i].params[j].keyHash == searchValue){
+			if(!strcmp(parsedBody.data[i].params[j].key, "name") && !strcmp(parsedBody.data[i].params[j].value, desiredField)){
 				return &(parsedBody.data[i]);
 			}
 		}
