@@ -75,3 +75,5 @@ This example shows off almost all of the features of the webserver, with two dyn
 This one is reasonably complex, since it parses body data and headers, but is still _reasonably_ understandable.
 ### `examples/automaticstaticpage`
 This is an actually useful example that uses a python script and the current directory structure to automatically generate `endpoints.c` and `endpoints.h`, this allows you to generate static pages very quickly that also load very quickly on the server side.
+
+Note that this example requires supplying `HASHSIZE=200` to the `make` command due to a hash collision.
