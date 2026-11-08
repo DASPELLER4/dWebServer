@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <stdint.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <string.h>
@@ -82,6 +83,15 @@ int main(int argc, char **argv){
 		char *predata = malloc(PREDATASIZE); // basically data to find the HTTP header with
 		predata[0] = 0;
 		char *predatastart = predata;
+		struct pollfd fds;
+		fds.fd = newRequest;
+		fds.events = POLL_IN;
+		int pollout = poll(&fds, 1, TIMEOUT);
+		if(pollout == 0){
+			send(newRequest, "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", sizeof("HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"), 0);
+			goto forceclose;
+		} else if(!(fds.revents & POLL_IN))
+			goto forceclose;
 		long datafillsize = read(newRequest, predata, PREDATASIZE-1);
 #ifdef DEBUG
 		requestCount += 1;
@@ -208,6 +218,13 @@ body:
 		if(contentlengthc){
 			contentlength = atol(contentlengthc);
 			if(contentlength > PREDATASIZE-(predata-predatastart)){
+#ifdef MAXBODYSIZE
+				if(contentlength > MAXBODYSIZE){
+					send(newRequest, "HTTP/1.1 413 Content Too Large\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", sizeof("HTTP/1.1 413 Content Too Large\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"), 0);
+					goto forceclose;
+				}
+#endif
+//TODO: add feature that opens mmap if content is too large
 				char *temp = malloc(contentlength + PREDATASIZE-(predata-predatastart));
 #ifdef DEBUG
 				printf("Allocating %ld bytes\n", contentlength + PREDATASIZE-(predata-predatastart));

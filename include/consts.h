@@ -19,7 +19,7 @@
 #endif
 
 #ifndef TIMEOUT
-	#define TIMEOUT 5
+	#define TIMEOUT -1
 #endif
 
 #endif

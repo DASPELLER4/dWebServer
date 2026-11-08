@@ -3,5 +3,6 @@
 
 #define PORT 3000
 #define ENDPOINTHASHSIZE 200
+#define TIMEOUT 1000
 
 #endif
