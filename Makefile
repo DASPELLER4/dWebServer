@@ -9,8 +9,6 @@ endif
 
 ifdef PORT
 	CFLAGS += -DPORT=$(PORT) 
-else
-	CFLAGS += -DPORT=80 
 endif
 
 ifdef DEBUG

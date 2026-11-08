@@ -1,5 +1,10 @@
 #ifndef CONSTS_H
 #define CONSTS_H
+#if defined __has_include
+#if __has_include("userconsts.h")
+#include "userconsts.h"
+#endif
+#endif
 
 #ifndef PORT
 	#define PORT 80
@@ -11,6 +16,10 @@
 
 #ifndef PREDATASIZE
 	#define PREDATASIZE 1000 // :D
+#endif
+
+#ifndef TIMEOUT
+	#define TIMEOUT 5
 #endif
 
 #endif
