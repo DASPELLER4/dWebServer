@@ -146,7 +146,11 @@ version:
 			if(*predata == '\n'){
 				*predata = 0;
 				predata++;
+#ifndef STATIC
 				goto headerslabel;
+#else
+				goto staticresponse;
+#endif
 			} else if(*predata == '\r'){
 				*predata = 0;
 				continue;
@@ -156,11 +160,12 @@ version:
 			}
 			versionLength++;
 		}
+#ifndef STATIC
 headerslabel:
 		if(strcmp(type,"POST") && strcmp(type,"GET")){
 			fprintf(stderr, "Recieved neither a GET nor POST request, unsupported!");
 			goto forceclose;
-		}
+		
 		char *currentKey = predata;
 		char *currentValue = NULL;
 		int currentHash = 0;
@@ -294,12 +299,18 @@ body:
 		printf("Body data:\n%s\n",body);
 		printf("Expected size: %ld, strlen size: %ld\n", bodyLength, strlen(body));
 #endif
+#endif // if statement for STATIC
+staticresponse:
 		response_t (*func)(request_t) = getEndpoint(path);
 		if(func){
 #ifdef DEBUG
 			printf("Found function at %lx\n", (long unsigned int)func);
 #endif
+#ifndef STATIC
 			response_t response = func((request_t){type, path, parsedHeaders, body, contentlength});
+#else
+			response_t response = func((request_t){type, path, NULL, NULL, 0});
+#endif
 			compiledResponse_t compiledResponse = compileResponse(response);
 
 #ifdef DEBUG
@@ -311,7 +322,11 @@ body:
 #ifdef DEBUG
 			printf("Running 404\n");
 #endif
-			response_t response = fourohfour((request_t){type, path, parsedHeaders, body});
+#ifndef STATIC
+			response_t response = fourohfour((request_t){type, path, parsedHeaders, body, contentlength});
+#else
+			response_t response = fourohfour((request_t){type, path, NULL, NULL, 0});
+#endif
 			compiledResponse_t compiledResponse = compileResponse(response);
 #ifdef DEBUG
 			printf("Responding:\n%s\n", compiledResponse.data);
@@ -321,10 +336,12 @@ body:
 			printf("No 404 page supplied; Closing connection\n");
 #endif
 		}
+#ifndef STATIC
 		free(parsedHeaders->headers);
 		free(parsedHeaders);
 		if(bodystart)
 			free(bodystart);
+#endif
 forceclose:
 		close(newRequest);
 		free(predatastart);
