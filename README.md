@@ -100,7 +100,7 @@ Some of these macros (indicated with a *) can be specified in your make command,
 |ENDPOINTHASHSIZE*|Specifies the size of the endpoint array, if this value is too small you may encounter endpoint hash collisions|256|
 |PREDATASIZE|Specifies the maximal size of a request before the body (only type of request, path, version and headers are included here)|1000|
 |MAXTIME|Specifies, in seconds, the maximal total time receiving an entire request; otherwise it will error out to the client|10|
-|TIMEOUT|Specifies, in seconds, the maximal time the server can spend on a single read(); otherwise it will error out to the client|10|
+|TIMEOUT|Specifies, in milliseconds, the maximal time the server can spend on a single read(); otherwise it will error out to the client|10|
 |MAXMEMORYUSE|Specifies, in Bytes, how large the request can be before it gets processed as a file and not in memory|10000000|
 |DEBUG*|Output debug text during runtime||
 |STATIC|Completely skips all request processing past the first line of the request, this is very fast, but it prevents your website from knowing any request headers or any of the request body||
