@@ -18,12 +18,12 @@
 	#define PREDATASIZE 1000 // :D
 #endif
 
-#ifndef TIMEOUT
-	#define TIMEOUT -1
+#ifndef MAXTIME
+	#define MAXTIME 10 // this sets how long in total we are willing to wait on the client, as opposed to TIMEOUT which waits for a single read
 #endif
 
-#ifndef MAXTIME
-	#define MAXTIME 1 // this sets how long in total we are willing to wait on the client, as opposed to TIMEOUT which waits for a single read
+#ifndef TIMEOUT
+	#define TIMEOUT 10
 #endif
 
 #ifndef MAXMEMORYUSE
