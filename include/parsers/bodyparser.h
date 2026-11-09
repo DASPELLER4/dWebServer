@@ -21,7 +21,7 @@ typedef struct{
 	parsedData_t *data;
 } parsedBody_t;
 
-int isLineBoundary(char*, char*);
+int isLineBoundary(char*, char*, char*, long);
 parsedBody_t parseMultiFormData(request_t);
 parsedData_t *getFieldByName(parsedBody_t, char*);
 

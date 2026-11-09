@@ -5,37 +5,46 @@
 #include "request.h"
 #include "headers.h"
 #include "response.h"
+#include "consts.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-int isLineBoundary(char *line, char *boundary){
+#define unexpectedZero if(!*bodyIter){return (parsedBody_t){-7, -1, NULL};}
+#define exceededBuffer if(bodyIter-request.body > request.length){return (parsedBody_t){-7, -1, NULL};}
+
+int isLineBoundary(char *line, char *boundary, char* start, long expectedLength){
+	if(line+2-start > expectedLength)
+		return -1;
 	if(line[0] != '-' || line[1] != '-'){
 		return 0;
 	}
 	line = line+2;
-	for(;*boundary; boundary++)
+	for(;*boundary; boundary++){
 		if(*line++ != *boundary)
 			return 0;
+	}
 	if(line[0] == '-' && line[1] == '-')
 		return 2;
 	return 1;
 } // \r\n terminated line
 
 parsedBody_t parseMultiFormData(request_t request){
+	if(request.length <= 0)
+		return (parsedBody_t){-1, -1, NULL};
 	char *headerIter = searchHeader(request.headers, "Content-Type");
 	char *contentType = headerIter;
 	if(!contentType)
-		return (parsedBody_t){-1, -1, NULL};	
+		return (parsedBody_t){-2, -1, NULL};	
 	headerIter += 19; // length of multipart/form-data + 1
 	if(*headerIter != ';')
-		return (parsedBody_t){-1, -1, NULL};	
+		return (parsedBody_t){-3, -1, NULL};	
 	char temp = *headerIter; // so we can recover the header
 	*headerIter = 0; // make sure you know whether doing this is safe
 	if(strcmp(contentType, "multipart/form-data")){
 		*headerIter = temp;
-		return (parsedBody_t){-1, -1, NULL};	
+		return (parsedBody_t){-4, -1, NULL};	
 	}
 	*headerIter = temp;
 	char *boundary = NULL;
@@ -46,7 +55,7 @@ parsedBody_t parseMultiFormData(request_t request){
 			break;
 		}
 	if(!boundary)
-		return (parsedBody_t){-1, -1, NULL};	
+		return (parsedBody_t){-5, -1, NULL};	
 	char *bodyIter = request.body;
 	int result;
 	char *currentValue = NULL;
@@ -54,20 +63,28 @@ parsedBody_t parseMultiFormData(request_t request){
 	int searchValue = keyHash_("filename");
 	parsedBody_t parsedBody = {2, 0, malloc(sizeof(parsedData_t)*2)};
 	for(;;bodyIter++){
-		result = isLineBoundary(bodyIter, boundary);
+		result = isLineBoundary(bodyIter, boundary, request.body, request.length);
 		switch(result){
+			case -1:
+				return (parsedBody_t){-6, -1, NULL};	
+				break;
 			case 1:
 				if(currentValue)
 					*(bodyIter-2) = 0;
 				if(currentParams)
 					goto readdata;
 backin:
-				for(;*bodyIter != '\n'; bodyIter++);
+				for(;*bodyIter != '\n'; bodyIter++)
+					unexpectedZero;
 				bodyIter++;
 				currentParams = bodyIter;
-				for(;*bodyIter != '\r'; bodyIter++);
+				for(;*bodyIter != '\r'; bodyIter++)
+					unexpectedZero;
 				*bodyIter = 0;
-				bodyIter += 2;
+				bodyIter += 1;
+				unexpectedZero;
+				bodyIter += 1;
+				unexpectedZero;
 				currentValue = bodyIter;
 				break;
 			case 2:
@@ -78,7 +95,8 @@ backin:
 			default:
 				break;
 		}
-		for(;*bodyIter != '\n'; bodyIter++);
+		for(;*bodyIter != '\n'; bodyIter++)
+			exceededBuffer; // zeroes are allowed here
 	}
 readdata:
 	if(parsedBody.size == parsedBody.count){

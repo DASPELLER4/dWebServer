@@ -8,6 +8,7 @@ typedef struct {
 	char *path;
 	header_t *headers;
 	char *body;
+	long length;
 } request_t;
 
 #endif

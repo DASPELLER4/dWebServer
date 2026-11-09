@@ -25,7 +25,10 @@
 
 #include "endpoints.h"
 
+#define exitDueToTime if(totalRequestTime > MAXTIME){send(newRequest, "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", sizeof("HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"), 0);goto forceclose;}
+
 int requestCount = 0;
+float totalRequestTime = 0.0;
 
 int main(int argc, char **argv){
 	endpoints; // macro
@@ -77,25 +80,30 @@ int main(int argc, char **argv){
                         continue;
                 }
 		close(serverFd); // we're inside a fork
+		totalRequestTime = 0.0;
 #ifdef DEBUG
 		struct timeval start, end;
 		gettimeofday(&start, NULL);
 #endif
+		struct timeval ask, recieve;
 		char *predata = malloc(PREDATASIZE); // basically data to find the HTTP header with
 		predata[0] = 0;
 		char *predatastart = predata;
 		struct pollfd fds;
 		fds.fd = newRequest;
 		fds.events = POLL_IN;
+		gettimeofday(&ask, NULL);
 		int pollout = poll(&fds, 1, TIMEOUT);
 		if(pollout == 0){
 			send(newRequest, "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", sizeof("HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"), 0);
 			goto forceclose;
 		} else if(!(fds.revents & POLL_IN))
 			goto forceclose;
+		gettimeofday(&recieve, NULL);
+		totalRequestTime += ((recieve.tv_sec - ask.tv_sec) * 1000000 + recieve.tv_usec - ask.tv_usec)/1000000.0;
+		exitDueToTime;
 		long datafillsize = read(newRequest, predata, PREDATASIZE-1);
 		requestCount += 1;
-		srand(time(NULL) + requestCount);
 #ifdef DEBUG
 		printf("Request ID: #%d\nPredata size: %ld\nPredata used: %ld\n", requestCount, (long)PREDATASIZE, datafillsize);
 		if(datafillsize >= PREDATASIZE-1)
@@ -248,8 +256,24 @@ body:
 				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
 				long offset = 0;
 				long new = 0;
-				while((new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset))){
+				long total = 0;
+				while(1){
+					fds.fd = newRequest;
+					fds.events = POLL_IN;
+					if(total >= contentlength-(PREDATASIZE-(predata-predatastart)-1))
+						break;
+					gettimeofday(&ask, NULL);
+					pollout = poll(&fds, 1, TIMEOUT);
+					if(pollout == 0)
+						goto forceclose;
+					else if(!(fds.revents & POLL_IN))
+						goto forceclose;
+					new = read(newRequest, temp+PREDATASIZE-(predata-predatastart)-1+offset, contentlength-(PREDATASIZE-(predata-predatastart)-1)-offset);
+					gettimeofday(&recieve, NULL);
+					totalRequestTime += ((recieve.tv_sec - ask.tv_sec) * 1000000 + recieve.tv_usec - ask.tv_usec)/1000000.0;
+					exitDueToTime;
 					offset += new;
+					total += new;
 #ifdef DEBUG
 					printf("\rMoved %ld bytes (+%ld)", offset, new);
 #endif
@@ -275,7 +299,7 @@ body:
 #ifdef DEBUG
 			printf("Found function at %lx\n", (long unsigned int)func);
 #endif
-			response_t response = func((request_t){type, path, parsedHeaders, body});
+			response_t response = func((request_t){type, path, parsedHeaders, body, contentlength});
 			compiledResponse_t compiledResponse = compileResponse(response);
 
 #ifdef DEBUG

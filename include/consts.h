@@ -22,6 +22,10 @@
 	#define TIMEOUT -1
 #endif
 
+#ifndef MAXTIME
+	#define MAXTIME 1 // this sets how long in total we are willing to wait on the client, as opposed to TIMEOUT which waits for a single read
+#endif
+
 #ifndef MAXMEMORYUSE
 	#define MAXMEMORYUSE 10000000
 #endif
