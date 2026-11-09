@@ -5,13 +5,25 @@
 A simple webserver written in C for creating websites in C, if you want to try the example out, run
 
 ```
-make clean; make ENDPOINTS=examples/standard PORT=3000 DEBUG=1; ./server
+make clean; make ENDPOINTS=examples/standard; ./server
 ```
+And open a browser to `http://localhost:3000/`
 
 This example has a basic HTML response on `/`, a POST `multipart/form-data` endpoint on `/formsubmit`, with binary file reading on `/favicon.ico`. It serves as a demo of an extremely basic forum/user comments feature.
 
 The webserver itself has _enough_ features to allow websites to be created, however features like rate-limits, max request sizes and basic code-quality/safety have not _yet_ been implemented. Hence, for now, the server is intended to be modified directly on `main.c` for anything secure/stable.
 
+## Prerequesites
+This webserver requires:
+|Package|Version|
+|-------|-------|
+|GCC|>10.3|
+|GNU/Linux|>3.1|
+|GNU Make|>4.0|
+|glibc|>2.4|
+|_Python*_|>3.0|
+
+_* only required for generating `example/automaticstaticpage`, although this does come pregenerated_
 ## Making a site
 
 To make a website using Name Pending, you only need to write an `endpoints.h` file and `endpoints.c` file.
@@ -75,3 +87,35 @@ This example shows off almost all of the features of the webserver, with two dyn
 This one is reasonably complex, since it parses body data and headers, but is still _reasonably_ understandable.
 ### `examples/automaticstaticpage`
 This is an actually useful example that uses a python script and the current directory structure to automatically generate `endpoints.c` and `endpoints.h`, this allows you to generate static pages very quickly that also load very quickly on the server side.
+
+## HTTPS
+HTTPS is not currently supported, this is planned with OpenSSL, but for now, I recommend you use NGINX as a reverse proxy for HTTPS traffic.
+
+## All Features
+### Macros
+Some of these macros (indicated with a *) can be specified in your make command, but these are intended to be set in `userconfig.h` within your endpoint folder.
+|Name|Description|Default|
+|----|-----------|-------|
+|PORT*|Specifies the port the HTTP server runs on|80|
+|ENDPOINTHASHSIZE*|Specifies the size of the endpoint array, if this value is too small you may encounter endpoint hash collisions|256|
+|PREDATASIZE|Specifies the maximal size of a request before the body (only type of request, path, version and headers are included here)|1000|
+|MAXTIME|Specifies, in seconds, the maximal total time receiving an entire request; otherwise it will error out to the client|10|
+|TIMEOUT|Specifies, in seconds, the maximal time the server can spend on a single read(); otherwise it will error out to the client|10|
+|MAXMEMORYUSE|Specifies, in Bytes, how large the request can be before it gets processed as a file and not in memory|10000000|
+|DEBUG*|Output debug text during runtime||
+|STATIC|Completely skips all request processing past the first line of the request, this is very fast, but it prevents your website from knowing any request headers or any of the request body||
+
+### Parsers
+Currently, only one body parser is included, this is in "bodyparser.h" and includes:
+* `parsedBody_t parseMultiFormData(request_t)`
+* `parsedData_t *getFieldByName(parsedBody_t, char*)`
+
+Where the first takes in the request passed into your endpoint and returns a dynamic array of `parsedData_t` (`.data`) and size `.count` for requests of type `multipart/form-data`.
+
+The second returns a parsedBody_t struct for a field of given name.
+
+`parsedData_t` is a struct consisting of:
+* `.count`: Size of the dynamic array containing the field parameters
+* `.params`: Dynamic array containing `keyvalue_t` that have a parameter (`.key`) and it's value (`.value`), for example: `.key = "Content-Disposition"`, `.value = "form-data"` or `.key = "filename"`, `.value = "test.mp4"`. This also includes the name of the field as `.value = "name"`
+* `.value`: A `char*` of the value for that field
+* `.length`: Length of the above character array
