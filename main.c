@@ -1,5 +1,9 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <stdint.h>
@@ -8,6 +12,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "consts.h"
 #include "request.h"
@@ -20,9 +25,7 @@
 
 #include "endpoints.h"
 
-#ifdef DEBUG
 int requestCount = 0;
-#endif
 
 int main(int argc, char **argv){
 	endpoints; // macro
@@ -70,9 +73,7 @@ int main(int argc, char **argv){
                         continue;
                 } else if(forkResult){
                         close(newRequest);
-#ifdef DEBUG
 			requestCount += 1;
-#endif
                         continue;
                 }
 		close(serverFd); // we're inside a fork
@@ -93,8 +94,9 @@ int main(int argc, char **argv){
 		} else if(!(fds.revents & POLL_IN))
 			goto forceclose;
 		long datafillsize = read(newRequest, predata, PREDATASIZE-1);
-#ifdef DEBUG
 		requestCount += 1;
+		srand(time(NULL) + requestCount);
+#ifdef DEBUG
 		printf("Request ID: #%d\nPredata size: %ld\nPredata used: %ld\n", requestCount, (long)PREDATASIZE, datafillsize);
 		if(datafillsize >= PREDATASIZE-1)
 			printf("Second read() will be required!\n");
@@ -225,10 +227,24 @@ body:
 				}
 #endif
 //TODO: add feature that opens mmap if content is too large
-				char *temp = malloc(contentlength + PREDATASIZE-(predata-predatastart));
+				char *temp;
+				if(contentlength + PREDATASIZE-(predata-predatastart) > MAXMEMORYUSE){
+					int mmapFd = open("./", O_TMPFILE | O_RDWR, 0);
+					if(ftruncate(mmapFd, contentlength + PREDATASIZE-(predata-predatastart)) == -1){
+						close(mmapFd);
+						goto forceclose;
+					}
 #ifdef DEBUG
-				printf("Allocating %ld bytes\n", contentlength + PREDATASIZE-(predata-predatastart));
+					printf("Opening temporary mmap file\n");
+					temp = mmap(NULL, contentlength + PREDATASIZE-(predata-predatastart), PROT_READ | PROT_WRITE, MAP_SHARED, mmapFd, 0);
+					close(mmapFd);
 #endif
+				} else {
+					temp = malloc(contentlength + PREDATASIZE-(predata-predatastart));
+#ifdef DEBUG
+					printf("Allocating %ld bytes\n", contentlength + PREDATASIZE-(predata-predatastart));
+#endif
+				}
 				memcpy(temp, predata, PREDATASIZE-(predata-predatastart)-1);
 				long offset = 0;
 				long new = 0;

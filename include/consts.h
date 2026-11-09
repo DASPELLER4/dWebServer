@@ -22,4 +22,8 @@
 	#define TIMEOUT -1
 #endif
 
+#ifndef MAXMEMORYUSE
+	#define MAXMEMORYUSE 10000000
+#endif
+
 #endif
